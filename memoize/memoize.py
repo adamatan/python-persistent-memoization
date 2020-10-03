@@ -9,26 +9,11 @@ import collections
 import functools
 import hashlib 
 import os 
+import json
 import pickle 
 from sys import stderr 
 import queue
 import threading 
-
-def moreCanonicalStr(var): 
-    """Return a string representation of var, similar to the one obtained by 
-    str, only when iterating through dictionaries, go by key order. 
-    """
-    if isinstance(var, dict): 
-        ret = "{" 
-        keys = var.keys() 
-        sortedKeys = sorted(keys) 
-        for k in sortedKeys: 
-            ret += str(k) + ": " + moreCanonicalStr(var[k]) + ", " 
-        ret = ret[:-2] + "}" 
-    else: 
-        ret = str(var) 
-    
-    return ret 
 
 class Memoize(object):
     '''Decorator. Caches a function's return value each time it is called.
@@ -71,7 +56,8 @@ class Memoize(object):
             if Memoize.cacheDir == None: 
                 return self.func(*args, **kwargs) 
             
-            nameWithArgs = self.filename + moreCanonicalStr(args) + moreCanonicalStr(kwargs)
+            nameWithArgs = self.filename + json.dumps({'args': args, 'kwargs': kwargs}, sort_keys=True)
+            print(f'nameWithArgs: {nameWithArgs}')
             hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest() 
             filePath = self.cacheDir + "/" + hashKey + ".cache"
             ret = None
