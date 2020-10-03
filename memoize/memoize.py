@@ -30,7 +30,7 @@ def moreCanonicalStr(var):
     
     return ret 
 
-class Memoized(object):
+class Memoize(object):
     '''Decorator. Caches a function's return value each time it is called.
     If called later with the same arguments, the cached value is returned
     (not reevaluated). 
@@ -47,7 +47,7 @@ class Memoized(object):
         object is initialized. 
         """
         if cacheDir != None: 
-            Memoized.cacheDir = cacheDir 
+            Memoize.cacheDir = cacheDir 
         if debug != None: 
             self.debug = debug 
     
@@ -57,10 +57,17 @@ class Memoized(object):
         The actual wrapper is returned. 
         Note: Calls to the function must be with named arguments, not positional. 
         """
-        self.func = func 
+        self.func = func
         self.filename = os.path.basename( self.func.__code__.co_filename ) 
+        
+        print(f'func: {func}')
+        print(dir(func))
+        print(f'code: {self.func.__code__}')
+        print(f'co_fn: {self.func.__code__.co_filename}')
+        print(f'filename: {self.filename}')
 
-        def wrappedFunc(**args): 
+
+        def wrappedFunc(*args, **kwargs): 
             """Memoization wrapper function. The wrapped function is already 
             stored in self.func. This one gets the arguments as parameters. 
             
@@ -68,14 +75,15 @@ class Memoized(object):
             not cryptographic guarantees) of the function's filename and 
             arguments. 
             """
-            if Memoized.cacheDir == None: 
-                return self.func(**args) 
+            if Memoize.cacheDir == None: 
+                return self.func(*args, **kwargs) 
             
-            nameWithArgs = self.filename + moreCanonicalStr(args)
+            nameWithArgs = self.filename + moreCanonicalStr(args) + moreCanonicalStr(kwargs)
+            print(f'nameWithArgs: {nameWithArgs}')
             hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest() 
             filePath = self.cacheDir + "/" + hashKey + ".cache"
             ret = None
-            if Memoized.readCache and os.path.exists(filePath): 
+            if Memoize.readCache and os.path.exists(filePath): 
                 resultFile = open(filePath, "rb") 
                 try: 
                     ret = pickle.load(resultFile) 
@@ -91,7 +99,7 @@ class Memoized(object):
                                             " taken from cache.\n") 
                 return ret 
             else: 
-                ret = self.func(**args) 
+                ret = self.func(*args, **kwargs) 
                 resultFile = open(filePath, "wb") 
                 pickle.dump(ret, resultFile) 
                 resultFile.close() 
