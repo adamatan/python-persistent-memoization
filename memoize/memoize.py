@@ -13,7 +13,8 @@ import json
 import pickle 
 from sys import stderr 
 import queue
-import threading 
+import threading
+import pathlib
 
 class Memoize(object):
     '''Decorator. Caches a function's return value each time it is called.
@@ -24,15 +25,15 @@ class Memoize(object):
     ''' 
     
     debug = False 
-    cacheDir = "/tmp" 
+    cacheDir = "/tmp/python-memoization-cache"
     readCache = True # If false, run anyway, and write result to cache. 
     
     def __init__(self, cacheDir = None, debug = None): 
         """Initialization of the Memozied object. This is called once, when the 
         object is initialized. 
         """
-        if cacheDir != None: 
-            Memoize.cacheDir = cacheDir 
+        cacheDir = cacheDir or Memoize.cacheDir
+        pathlib.Path(cacheDir).mkdir(parents=True, exist_ok=True)
         if debug != None: 
             self.debug = debug 
     
