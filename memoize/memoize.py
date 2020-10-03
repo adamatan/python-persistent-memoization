@@ -60,13 +60,6 @@ class Memoize(object):
         self.func = func
         self.filename = os.path.basename( self.func.__code__.co_filename ) 
         
-        print(f'func: {func}')
-        print(dir(func))
-        print(f'code: {self.func.__code__}')
-        print(f'co_fn: {self.func.__code__.co_filename}')
-        print(f'filename: {self.filename}')
-
-
         def wrappedFunc(*args, **kwargs): 
             """Memoization wrapper function. The wrapped function is already 
             stored in self.func. This one gets the arguments as parameters. 
@@ -79,7 +72,6 @@ class Memoize(object):
                 return self.func(*args, **kwargs) 
             
             nameWithArgs = self.filename + moreCanonicalStr(args) + moreCanonicalStr(kwargs)
-            print(f'nameWithArgs: {nameWithArgs}')
             hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest() 
             filePath = self.cacheDir + "/" + hashKey + ".cache"
             ret = None
