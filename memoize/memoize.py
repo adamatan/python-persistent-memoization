@@ -56,9 +56,11 @@ class Memoize(object):
             if Memoize.cacheDir == None: 
                 return self.func(*args, **kwargs) 
             
-            nameWithArgs = self.filename + json.dumps({'args': args, 'kwargs': kwargs}, sort_keys=True)
+            nameWithArgs = self.filename + '/' + func.__name__ + json.dumps([args, kwargs], sort_keys=True)
             print(f'nameWithArgs: {nameWithArgs}')
+            print(f'func name: {func.__name__}')
             hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest() 
+            print(f'Hashkey: {hashKey}')
             filePath = self.cacheDir + "/" + hashKey + ".cache"
             ret = None
             if Memoize.readCache and os.path.exists(filePath): 

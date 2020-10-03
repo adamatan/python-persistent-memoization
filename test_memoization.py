@@ -43,4 +43,4 @@ def test_args_and_kwargs_memoization():
 
 def test_function_mixup():
     """Make sure that different functions with the same args are cached under different keys"""
-    assert get_random_with_kwargs(n=1) != get_another_random_with_args(1)
+    assert get_random_with_args(1) != get_another_random_with_args(1)
