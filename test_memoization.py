@@ -23,6 +23,9 @@ def get_random_with_kwargs(n=0):
 def get_random_with_args_and_kwargs(num, n=0):
     return random.random() + num + n
 
+@Memoize(cacheDir=None)
+def get_random_no_cache():
+    return random.random()
 
 # Tests
 def test_basic_memoization():
@@ -44,3 +47,6 @@ def test_args_and_kwargs_memoization():
 def test_function_mixup():
     """Make sure that different functions with the same args are cached under different keys"""
     assert get_random_with_args(1) != get_another_random_with_args(1)
+
+def test_no_cache_dir():
+    assert get_random_no_cache() != get_random_no_cache()
