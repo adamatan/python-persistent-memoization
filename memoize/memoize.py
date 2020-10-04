@@ -1,17 +1,17 @@
-# October 2020, Ittay Eyal, ittay@tx.technion.ac.il 
-# 
-# References: 
-# [1] The Python Wiki, http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize 
-# [2] Bruce Eckel, Python Decorators II: Decorator Arguments, 
-#     http://www.artima.com/weblogs/viewpost.jsp?thread=240845 
+# October 2020, Ittay Eyal, ittay@tx.technion.ac.il
+#
+# References:
+# [1] The Python Wiki, http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+# [2] Bruce Eckel, Python Decorators II: Decorator Arguments,
+#     http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 
 import collections
 import functools
-import hashlib 
-import os 
+import hashlib
+import os
 import json
-import pickle 
-from sys import stderr 
+import pickle
+from sys import stderr
 import queue
 import threading
 import pathlib
@@ -24,7 +24,7 @@ class Memoize(object):
     IMPORTANT: Decorate with parentheses, i.e. "@Memoized()" and not "@Memoized"
     '''
 
-    DEBUG = False 
+    DEBUG = False
     CACHE_DIR = "/tmp/python-memoization-cache"
     # If false, run anyway, and write result to cache
     READ_CACHE = True
@@ -32,63 +32,63 @@ class Memoize(object):
     def __init__(self, cacheDir = None, debug = None):
         """Called once."""
         cacheDir = cacheDir or Memoize.CACHE_DIR
-        pathlib.Path(cacheDir).mkdir(parents=True, exist_ok=True) 
+        pathlib.Path(cacheDir).mkdir(parents=True, exist_ok=True)
         self.debug = debug or Memoize.DEBUG
 
-    def __call__(self, func): 
-        """Initialization of the Memoized object. This is called once, with the  
+    def __call__(self, func):
+        """Initialization of the Memoized object. This is called once, with the
         name of the function to be wrapped.
         The actual wrapper is returned.
         """
         self.func = func
-        self.filename = os.path.basename( self.func.__code__.co_filename ) 
-        
-        def wrappedFunc(*args, **kwargs): 
-            """Memoization wrapper function. The wrapped function is already 
-            stored in self.func. This one gets the arguments as parameters. 
-            
-            The hash key is computed with sha1 (due to the conflict probability, 
-            not cryptographic guarantees) of the function's filename and 
-            arguments. 
+        self.filename = os.path.basename( self.func.__code__.co_filename )
+
+        def wrappedFunc(*args, **kwargs):
+            """Memoization wrapper function. The wrapped function is already
+            stored in self.func. This one gets the arguments as parameters.
+
+            The hash key is computed with sha1 (due to the conflict probability,
+            not cryptographic guarantees) of the function's filename and
+            arguments.
             """
-            if Memoize.CACHE_DIR == None: 
-                return self.func(*args, **kwargs) 
-            
+            if Memoize.CACHE_DIR == None:
+                return self.func(*args, **kwargs)
+
             nameWithArgs = self.filename + '/' + func.__name__ + json.dumps([args, kwargs], sort_keys=True)
             print(f'nameWithArgs: {nameWithArgs}')
             print(f'func name: {func.__name__}')
-            hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest() 
+            hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest()
             print(f'Hashkey: {hashKey}')
             filePath = self.CACHE_DIR + "/" + hashKey + ".cache"
             ret = None
-            if Memoize.READ_CACHE and os.path.exists(filePath): 
-                resultFile = open(filePath, "rb") 
-                try: 
-                    ret = pickle.load(resultFile) 
-                except Exception as e: 
-                    print(e) 
-                    ret = None 
-                resultFile.close() 
-            if ret != None: 
-                if self.debug: stderr.write("Warning! Result of " + 
-                                            func.__name__ + 
-                                            "() in " + 
-                                            self.filename + 
-                                            " taken from cache.\n") 
-                return ret 
-            else: 
-                ret = self.func(*args, **kwargs) 
-                resultFile = open(filePath, "wb") 
-                pickle.dump(ret, resultFile) 
-                resultFile.close() 
-                return ret 
-        
-        return wrappedFunc 
+            if Memoize.READ_CACHE and os.path.exists(filePath):
+                resultFile = open(filePath, "rb")
+                try:
+                    ret = pickle.load(resultFile)
+                except Exception as e:
+                    print(e)
+                    ret = None
+                resultFile.close()
+            if ret != None:
+                if self.debug: stderr.write("Warning! Result of " +
+                                            func.__name__ +
+                                            "() in " +
+                                            self.filename +
+                                            " taken from cache.\n")
+                return ret
+            else:
+                ret = self.func(*args, **kwargs)
+                resultFile = open(filePath, "wb")
+                pickle.dump(ret, resultFile)
+                resultFile.close()
+                return ret
+
+        return wrappedFunc
 
     def __repr__(self):
         '''Return the function's docstring.'''
         return self.func.__doc__
-    
+
     def __get__(self, obj, objtype):
         '''Support instance methods.'''
-        return functools.partial(self.__call__, obj) 
+        return functools.partial(self.__call__, obj)
