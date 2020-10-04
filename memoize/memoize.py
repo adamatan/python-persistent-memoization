@@ -19,29 +19,26 @@ import pathlib
 class Memoize(object):
     '''Decorator. Caches a function's return value each time it is called.
     If called later with the same arguments, the cached value is returned
-    (not reevaluated). 
+    (not reevaluated).
 
-    IMPORTANT: Decorate with parentheses, i.e. "@Memoized()" and not "@Memoized" 
-    ''' 
-    
-    debug = False 
-    cacheDir = "/tmp/python-memoization-cache"
-    readCache = True # If false, run anyway, and write result to cache. 
-    
-    def __init__(self, cacheDir = None, debug = None): 
-        """Initialization of the Memozied object. This is called once, when the 
-        object is initialized. 
-        """
-        cacheDir = cacheDir or Memoize.cacheDir
-        pathlib.Path(cacheDir).mkdir(parents=True, exist_ok=True)
-        if debug != None: 
-            self.debug = debug 
-    
+    IMPORTANT: Decorate with parentheses, i.e. "@Memoized()" and not "@Memoized"
+    '''
+
+    DEBUG = False 
+    CACHE_DIR = "/tmp/python-memoization-cache"
+    # If false, run anyway, and write result to cache
+    READ_CACHE = True
+
+    def __init__(self, cacheDir = None, debug = None):
+        """Called once."""
+        cacheDir = cacheDir or Memoize.CACHE_DIR
+        pathlib.Path(cacheDir).mkdir(parents=True, exist_ok=True) 
+        self.debug = debug or Memoize.DEBUG
+
     def __call__(self, func): 
-        """Initialization of the Memoized object. This is called once, with the 
-        name of the function to be wrapped. 
-        The actual wrapper is returned. 
-        Note: Calls to the function must be with named arguments, not positional. 
+        """Initialization of the Memoized object. This is called once, with the  
+        name of the function to be wrapped.
+        The actual wrapper is returned.
         """
         self.func = func
         self.filename = os.path.basename( self.func.__code__.co_filename ) 
@@ -54,7 +51,7 @@ class Memoize(object):
             not cryptographic guarantees) of the function's filename and 
             arguments. 
             """
-            if Memoize.cacheDir == None: 
+            if Memoize.CACHE_DIR == None: 
                 return self.func(*args, **kwargs) 
             
             nameWithArgs = self.filename + '/' + func.__name__ + json.dumps([args, kwargs], sort_keys=True)
@@ -62,9 +59,9 @@ class Memoize(object):
             print(f'func name: {func.__name__}')
             hashKey = hashlib.sha1(nameWithArgs.encode("utf-8")).hexdigest() 
             print(f'Hashkey: {hashKey}')
-            filePath = self.cacheDir + "/" + hashKey + ".cache"
+            filePath = self.CACHE_DIR + "/" + hashKey + ".cache"
             ret = None
-            if Memoize.readCache and os.path.exists(filePath): 
+            if Memoize.READ_CACHE and os.path.exists(filePath): 
                 resultFile = open(filePath, "rb") 
                 try: 
                     ret = pickle.load(resultFile) 
