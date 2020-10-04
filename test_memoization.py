@@ -1,8 +1,6 @@
 import random
 from memoize.memoize import Memoize
 
-memoizer = Memoize(cacheDir=None)
-
 # Tested functions
 @Memoize()
 def get_random():
